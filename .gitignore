@@ -1,0 +1,5 @@
+/target/
+*.zip
+*.avi
+glove.6B.1
+*.csv
