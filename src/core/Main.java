@@ -36,6 +36,7 @@ import record.AVIVideoRecorder;
 import record.AbstractVideoRecorder;
 import record.FileVideoRecorder;
 import record.IsoTimer;
+import record.XuggleVideoRecorder;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
@@ -66,9 +67,10 @@ public class Main extends SimpleApplication {
 		sets.setFullscreen(true);
 
 		Main app = new Main();
-		app.setTimer(new IsoTimer(100));
+		
+		app.setTimer(new IsoTimer(30));
 		try {
-			Capture.captureVideo(app, new File("record.avi"));
+			Capture.captureVideo(app, new File("record.mp4"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -79,13 +81,14 @@ public class Main extends SimpleApplication {
 		app.start(); // start the game
 	}
 
+	static AbstractVideoRecorder videoRecorder = null;
 	public static void captureVideo(final Application app, final File file) throws IOException {
-		AbstractVideoRecorder videoRecorder = new FileVideoRecorder(file);
-		if (file.getCanonicalPath().endsWith(".avi")) {
-			videoRecorder = new AVIVideoRecorder(file);
-		} else if (file.isDirectory()) {
-			videoRecorder = new FileVideoRecorder(file);
-		}
+		AbstractVideoRecorder videoRecorder=  new XuggleVideoRecorder(file);
+		//if (file.getCanonicalPath().endsWith(".avi")) {
+		//	videoRecorder = new AVIVideoRecorder(file);
+		//} else if (file.isDirectory()) {
+		//	videoRecorder = new FileVideoRecorder(file);
+		//}
 
 		Callable<Object> thunk = new Callable<Object>() {
 			public Object call() {

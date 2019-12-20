@@ -63,10 +63,10 @@ public class BigBall{
 		font = _font;
 		if (!BigBall.created.contains(this.hashCode()))  {
 	    	BigBall.created.add(this.hashCode());
-			System.out.println(this.hashCode());
+			//System.out.println(this.hashCode());
 		}
 		else {
-			System.out.println("Not added");
+			//System.out.println("Not added");
 
 			return;
 		}

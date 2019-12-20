@@ -4,12 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
+import com.aurellem.capture.AurellemSystemDelegate;
 import com.aurellem.capture.audio.MultiListener;
-import com.aurellem.capture.audio.WaveFileWriter;
 import com.aurellem.capture.video.AVIVideoRecorder;
 import com.aurellem.capture.video.AbstractVideoRecorder;
 import com.aurellem.capture.video.FileVideoRecorder;
-//import com.aurellem.capture.video.XuggleVideoRecorder;
+import record.XuggleVideoRecorder;
 import com.jme3.app.Application;
 import com.jme3.audio.AudioRenderer;
 import com.jme3.renderer.ViewPort;
@@ -86,15 +86,13 @@ public class Capture {
 	
     public static void captureVideo
 	(final Application app, final File file) throws IOException{
-	final AbstractVideoRecorder videoRecorder;
+	final XuggleVideoRecorder videoRecorder = new XuggleVideoRecorder(file);
 
-	if (file.getCanonicalPath().endsWith(".avi")){
-	    videoRecorder = new AVIVideoRecorder(file);}
-	else {
-	    videoRecorder = new FileVideoRecorder(file);}
-	//else { 
-		//videoRecorder = new XuggleVideoRecorder(file);
-	//}
+	//if (file.getCanonicalPath().endsWith(".avi")){
+	//    videoRecorder = new AVIVideoRecorder(file);}
+	//else {
+	//    videoRecorder = new FileVideoRecorder(file);}
+
 
 	Callable<Object> thunk = new Callable<Object>(){
 	    public Object call(){
@@ -154,15 +152,12 @@ public class Capture {
 	app.setSettings(settings);
 
 	JmeSystem.setSystemDelegate(new AurellemSystemDelegate());
-		
-	final WaveFileWriter writer = new WaveFileWriter(file);
 
 	Callable<Object> thunk = new Callable<Object>(){
 	    public Object call(){
 		AudioRenderer ar = app.getAudioRenderer();
 		if (ar instanceof MultiListener){
 		    MultiListener ml = (MultiListener)ar;
-		    ml.registerSoundProcessor(writer);
 		}
 		return null;
 	    }

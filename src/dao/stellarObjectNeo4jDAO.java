@@ -73,7 +73,7 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 		       "}"
 
 		       );
-		res.stream().forEach(i -> System.out.println(i));
+		//res.stream().forEach(i -> System.out.println(i));
 		res.stream().forEach(i -> result.put(new stellarObject(
 				i.get("n1").get("name").asString(), 
 				i.get("n1").get("x_" + kind).asDouble(), 
