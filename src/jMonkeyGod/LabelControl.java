@@ -31,7 +31,6 @@ public class LabelControl extends AbstractControl {
     public void setSpatial(Spatial spatial) {   
         super.setSpatial(spatial);
     }
- 
     @Override 
     protected void controlUpdate(float tpf){  
         if(spatial != null) {

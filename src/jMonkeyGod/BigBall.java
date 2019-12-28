@@ -63,16 +63,16 @@ public class BigBall{
 		font = _font;
 		if (!BigBall.created.contains(this.hashCode()))  {
 	    	BigBall.created.add(this.hashCode());
-			System.out.println(this.hashCode());
+			//System.out.println(this.hashCode());
 		}
 		else {
-			System.out.println("Not added");
+			//System.out.println("Not added");
 
 			return;
 		}
 
 
-		Sphere ballMesh = new Sphere(40,10,2);
+		Sphere ballMesh = new Sphere(40,10,3);
         sphere = new Geometry (name, ballMesh);
         
         sphere.setMaterial(mat);   
@@ -89,9 +89,10 @@ public class BigBall{
 		BitmapText label = new BitmapText(font, false);
 		label.setSize(5);
 		label.setText(sphere.getName()); 
-		label.setColor(new ColorRGBA(1f,0.8f,0.3f,0.8f));
+		label.setColor(new ColorRGBA(0f,0f,0f,1f));
 		label.setQueueBucket(Bucket.Transparent);
 		label.addControl(lc);
 		return label;
 	}
+	
 }

@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.neo4j.driver.Record;
+import org.neo4j.driver.Value;
+import org.neo4j.driver.exceptions.value.NotMultiValued;
 
 import jMonkeyGod.StellarPoint;
 import model.stellarObject;
@@ -39,13 +41,7 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 		       "}"
 
 		       );
-		res.stream().forEach(i -> result.add(new stellarObject(
-				i.get("n").get("name").asString(), 
-				i.get("n").get("x_" + kind).asDouble(), 
-				i.get("n").get("y_" + kind).asDouble(), 
-				i.get("n").get("z_" + kind).asDouble()
-				))
-		);
+		res.stream().forEach(i -> result.add(new stellarObject(i.get("n"),  kind)));
 		
 		return result;
 	}
@@ -73,19 +69,9 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 		       "}"
 
 		       );
-		res.stream().forEach(i -> System.out.println(i));
-		res.stream().forEach(i -> result.put(new stellarObject(
-				i.get("n1").get("name").asString(), 
-				i.get("n1").get("x_" + kind).asDouble(), 
-				i.get("n1").get("y_" + kind).asDouble(), 
-				i.get("n1").get("z_" + kind).asDouble()
-				),
-				new stellarObject(
-				i.get("n2").get("name").asString(), 
-				i.get("n2").get("x_" + kind).asDouble(), 
-				i.get("n2").get("y_" + kind).asDouble(), 
-				i.get("n2").get("z_" + kind).asDouble()
-				))
+		//res.stream().forEach(i -> System.out.println(i));
+		res.stream().forEach(i -> result.put(new stellarObject(i.get("n1"),  kind),
+				new stellarObject(i.get("n2"),  kind))
 		);
 		
 		return result;
@@ -98,7 +84,7 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 	                    "(n.y_"+kind+"-"+local_pos.getY() +")^2 + " +
 	                    "(n.z_"+kind+"-"+local_pos.getZ() +")^2 " +
 	                    " < " + radius +
-				  " RETURN n";
+				  " RETURN n" ;
 		jlog.info(query);
 		
 		ArrayList<Record> res = gdb.query(query);
@@ -118,17 +104,22 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 		       "}"
 
 		       );
-		res.stream().forEach(i -> result.add(new stellarObject(
-				i.get("n").get("name").asString(), 
-				i.get("n").get("x_" + kind).asDouble(), 
-				i.get("n").get("y_" + kind).asDouble(), 
-				i.get("n").get("z_" + kind).asDouble()
-				))
-		);
+		res.stream().forEach(i -> tryAdd(result, i.get("n"),  kind));
 		
 		return result;
 	}
 
+	public void tryAdd(ArrayList<stellarObject> result, Value value, String kind2)  {
+		try  {
+
+			result.add(new stellarObject(value, kind));	
+		}
+		catch(NotMultiValued e)  {
+			System.out.println ("Result not convertable to point " + value + " " + kind);
+		}
+	}
+	
+	
 	
  
 }

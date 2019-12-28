@@ -16,6 +16,8 @@ import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeSystem;
 
+import record.XuggleVideoRecorder;
+
 /**
  * Use the methods in this class for capturing consistent,
  * high quality video and audio from a jMonkeyEngine3
@@ -85,15 +87,12 @@ public class Capture {
 	
     public static void captureVideo
 	(final Application app, final File file) throws IOException{
-	final AbstractVideoRecorder videoRecorder;
+	final XuggleVideoRecorder videoRecorder = new XuggleVideoRecorder(file);
 
-	if (file.getCanonicalPath().endsWith(".avi")){
-	    videoRecorder = new AVIVideoRecorder(file);}
-	else {
-	    videoRecorder = new FileVideoRecorder(file);}
-	//else { 
-		//videoRecorder = new XuggleVideoRecorder(file);
-	//}
+	//if (file.getCanonicalPath().endsWith(".avi")){
+	//    videoRecorder = new AVIVideoRecorder(file);}
+	//else {
+	//    videoRecorder = new FileVideoRecorder(file);}
 
 	Callable<Object> thunk = new Callable<Object>(){
 	    public Object call(){

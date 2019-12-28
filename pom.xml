@@ -1,35 +1,105 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>HALinMind</groupId>
-  <artifactId>HALinMind</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <build>
-    <sourceDirectory>src</sourceDirectory>
-    <resources>
-      <resource>
-        <directory>assets</directory>
-        <excludes>
-          <exclude>**/*.java</exclude>
-        </excludes>
-      </resource>
-    </resources>
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-  <dependencies>
-       <dependency>
-    <groupId>org.springframework.data</groupId>
-    <artifactId>spring-data-neo4j</artifactId>
-    <version>5.2.0.RELEASE</version>
-  </dependency>
-  </dependencies>
-  
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>HALinMind</groupId>
+	<artifactId>HALinMind</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<properties>
+		<!-- JMonkey stats -->
+		<jme3_g>org.jmonkeyengine</jme3_g>
+		<!-- Check the last version -->
+		<jme3_v>3.2.0-stable</jme3_v>
+	</properties>
+
+
+	<repositories>
+		<repository>
+			<id>xuggle repo</id>
+			<url>https://files.liferay.com/mirrors/xuggle.googlecode.com/svn/trunk/repo/share/java/</url>
+		</repository>
+		<!-- Repository for JMonkey Engine dependences -->
+		<repository>
+			<id>jcenter</id>
+			<url>https://jcenter.bintray.com/</url>
+		</repository>
+	</repositories>
+	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<resources>
+			<resource>
+				<directory>assets</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<!-- https://mvnrepository.com/artifact/org.jmonkeyengine/jme3-core -->
+		<!-- https://mvnrepository.com/artifact/org.jmonkeyengine/jme3-core -->
+		<!-- JMonkey Engine dependences -->
+		<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-core</artifactId>
+			<version>${jme3_v}</version>
+		</dependency>
+		<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-desktop</artifactId>
+			<version>${jme3_v}</version>
+		</dependency>
+		<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-lwjgl</artifactId>
+			<version>${jme3_v}</version>
+		</dependency>
+		<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-bullet</artifactId>
+			<version>${jme3_v}</version>
+		</dependency>
+		<dependency>
+			<groupId>${jme3_g}</groupId>
+			<artifactId>jme3-bullet-native</artifactId>
+			<version>${jme3_v}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.opencsv/opencsv -->
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>5.0</version>
+		</dependency>
+
+
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-neo4j</artifactId>
+			<version>5.2.0.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>xuggle</groupId>
+			<artifactId>xuggle-xuggler</artifactId>
+			<version>5.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-csv</artifactId>
+			<version>2.9.9</version>
+		</dependency>
+	</dependencies>
+
+
+
 </project>
