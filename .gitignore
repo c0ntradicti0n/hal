@@ -3,6 +3,6 @@
 *.avi
 glove.6B.1
 *.csv
-videos/
-assets/
-data/
+videos
+assets
+data
