@@ -89,11 +89,11 @@ public class Main extends SimpleApplication {
 
 		sets.setFullscreen(true);
 
-		app = new Main();
-
+		Main app = new Main();
+		
 		app.setTimer(new IsoTimer(30));
 		try {
-			Capture.captureVideo(app, new File("videos/record.mp4"));
+			Capture.captureVideo(app, new File("record.mp4"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -113,6 +113,7 @@ public class Main extends SimpleApplication {
 		// } else if (file.isDirectory()) {
 		// videoRecorder = new FileVideoRecorder(file);
 		// }
+
 
 		Callable<Object> thunk = new Callable<Object>() {
 			public Object call() {

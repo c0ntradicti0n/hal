@@ -11,8 +11,6 @@
 		<!-- Check the last version -->
 		<jme3_v>3.2.0-stable</jme3_v>
 	</properties>
-
-
 	<repositories>
 		<repository>
 			<id>xuggle repo</id>
@@ -47,7 +45,6 @@
 	</build>
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.jmonkeyengine/jme3-core -->
-		<!-- https://mvnrepository.com/artifact/org.jmonkeyengine/jme3-core -->
 		<!-- JMonkey Engine dependences -->
 		<dependency>
 			<groupId>${jme3_g}</groupId>
@@ -80,9 +77,6 @@
 			<artifactId>opencsv</artifactId>
 			<version>5.0</version>
 		</dependency>
-
-
-
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-neo4j</artifactId>
@@ -99,7 +93,4 @@
 			<version>2.9.9</version>
 		</dependency>
 	</dependencies>
-
-
-
 </project>
