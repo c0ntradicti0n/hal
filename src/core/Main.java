@@ -10,16 +10,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.logging.Logger;
+
+import org.neo4j.driver.internal.shaded.io.netty.util.internal.logging.Log4J2LoggerFactory;
 
 import com.aurellem.capture.Capture;
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.jme3.animation.LoopMode;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.ScreenshotAppState;
-import com.jme3.audio.AudioData.DataType;
-import com.jme3.audio.AudioNode;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.cinematic.Cinematic;
 import com.jme3.cinematic.MotionPath;
@@ -33,10 +32,8 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.material.Material;
 import com.jme3.scene.CameraNode;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.CameraControl.ControlDirection;
-import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Line;
 import com.jme3.system.AppSettings;
 import com.opencsv.bean.CsvToBeanBuilder;
@@ -47,7 +44,6 @@ import jMonkeyGod.StellarPoint;
 import model.ClusterCenter;
 
 import model.stellarObject;
-import record.AVIVideoRecorder;
 import record.AbstractVideoRecorder;
 import record.FileVideoRecorder;
 import record.IsoTimer;
@@ -58,9 +54,14 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.ViewPort;
 
 public class Main extends SimpleApplication {
+	private  Logger jlog =  Logger.getLogger("Main");
 	static String kind = "tsne";
-	static stellarObjectNeo4jDAO cosmic_dao = new stellarObjectNeo4jDAO(kind);
+	static int MAX = 600000;
+	static stellarObjectNeo4jDAO cosmic_dao = new stellarObjectNeo4jDAO(kind, MAX);
+	private static Main app;
 	private BulletAppState physicsState = new BulletAppState();
+	boolean fly_or_move = true;
+
 
 	ArrayList<Geometry> stars = new ArrayList<>();
 	ArrayList<Material> materials = new ArrayList<>();
@@ -88,7 +89,7 @@ public class Main extends SimpleApplication {
 
 		sets.setFullscreen(true);
 
-		Main app = new Main();
+		app = new Main();
 
 		app.setTimer(new IsoTimer(30));
 		try {
@@ -106,6 +107,7 @@ public class Main extends SimpleApplication {
 
 	public static void captureVideo(final Application app, final File file) throws IOException {
 		AbstractVideoRecorder videoRecorder = new XuggleVideoRecorder(file);
+		//AbstractVideoRecorder videoRecorder = new FileVideoRecorder(file);
 		// if (file.getCanonicalPath().endsWith(".avi")) {
 		// videoRecorder = new AVIVideoRecorder(file);
 		// } else if (file.isDirectory()) {
@@ -116,7 +118,7 @@ public class Main extends SimpleApplication {
 			public Object call() {
 				ViewPort viewPort = app.getRenderManager().createPostView("aurellem record", app.getCamera());
 				viewPort.setClearFlags(false, false, false);
-// get GUI node stuff
+
 				for (Spatial s : app.getGuiViewPort().getScenes()) {
 					viewPort.attachScene(s);
 				}
@@ -157,18 +159,18 @@ public class Main extends SimpleApplication {
 		});
 	}
 
-	final static int MAX = 30000;
-
 	public void addRealm(Vector3f rPos, float radius) {
 		StellarPoint local_pos = new StellarPoint(rPos);
 		List<stellarObject> ElementsInHorizon = cosmic_dao.findByPosition(local_pos, radius);
 
-		Material knowledgeMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"); // create a simple
-																										// material
+		// material
 		BitmapFont font = assetManager.loadFont("Interface/Fonts/Default.fnt");
 
 		int i = 0;
 		for (stellarObject dataObi : ElementsInHorizon) {
+			Material knowledgeMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"); // create a
+																											// simple
+
 			knowledgeMaterial.setColor("Color", clusterColors.get(dataObi.cl_kn + 1));
 			// System.out.println(clusterColors.get(dataObi.cl_kn +1).toString() + " <- " +
 			// (dataObi.cl_kn +1));
@@ -181,64 +183,66 @@ public class Main extends SimpleApplication {
 
 	@Override
 	public void simpleInitApp() {
-
-		// adds the Physics state to the application, sets the speed and global
-		// gravity variable.
-
 		stateManager.attach(physicsState);
-		physicsState.setSpeed(5f);
-
+		
+		// screenshot machine, press KeyInput.KEY_SYSRQ, "Druck"
 		ScreenshotAppState screenShotState = new ScreenshotAppState();
 		stateManager.attach(screenShotState);
 
+		// view
 		viewPort.setBackgroundColor(ColorRGBA.White);
 		float fov = 45;
 		float near = 50.0f;
-		float far = 100000f;
+		float far = 200000f;
 		float aspect = (float) cam.getWidth() / cam.getHeight();
 		cam.setFrustumPerspective(fov, aspect, near, far);
 
+		// add some things to universe
 		addWordGroup("anti", ColorRGBA.Orange);
 		addWordGroup("contra", ColorRGBA.Magenta);
 		addWordGroup("non", ColorRGBA.Red);
 		addWordGroup("real", ColorRGBA.Blue);
-
-		addWordRelation("antonym", ColorRGBA.White);
-
-		// rootNode.rotateUpTo(cam.getDirection());
-
+		addWordRelation("antonym", ColorRGBA.DarkGray);
 		List<stellarObject> ElementsInHorizon = cosmic_dao.findByName("dr");
-
-		ElementsInHorizon.get(0);
 
 		// pcaCl = readClusterCenters("data/pca_clusters_mean_points.csv");
 		// tsneCl = readClusterCenters("data/tsne_clusters_mean_points.csv");
 		// k2Cl = readClusterCenters("data/k2_clusters_mean_points.csv");
 		knCl = readClusterCenters("data/kn_clusters_mean_points.csv");
 
-		for (int i = 0; i < knCl.size() + 2; i++) {
+		for (int i = 0; i < knCl.size() + 1; i++) {
 			// cl==-1 is for outliers
 			clusterColors.add(ColorRGBA.randomColor());
 		}
+		clusterColors.add(0, ColorRGBA.Black);
 
-		cinematic = new Cinematic(rootNode, 50);
+		// robot camera man
+		cinematic = new Cinematic(rootNode, 1000f);
 		stateManager.attach(cinematic);
 		createCameraMotion();
 		cinematic.activateCamera(0, "topView");
 
-		// cam.lookAtDirection(new Vector3f(0f, 0f, 0f), new Vector3f((float)
-		// lastObi.coords.getX(),
-		// (float) lastObi.coords.getY(), (float) lastObi.coords.getZ()));
-
+		// hotkeys
 		inputManager.addMapping("more", new KeyTrigger(KeyInput.KEY_M));
 		inputManager.addListener(actionListener, "more");
-		addRealm(cam.getLocation(), 300000.5f);
-		
+		inputManager.addMapping("cam", new KeyTrigger(KeyInput.KEY_C));
+		inputManager.addListener(actionListener, "cam");
+		inputManager.addMapping("exit", new KeyTrigger(KeyInput.KEY_X));
+		inputManager.addListener(actionListener, "exit");
+		inputManager.addMapping("moremax", new KeyTrigger(KeyInput.KEY_EQUALS));
+		inputManager.addListener(actionListener, "moremax");
+		inputManager.addMapping("lessmax", new KeyTrigger(KeyInput.KEY_MINUS));
+		inputManager.addListener(actionListener, "lessmax");
+		addRealm(cam.getLocation(), 600000.5f);
+
+		cameraMotionControl.stop();
+		camNode.setEnabled(false);
 		flyCam.setEnabled(true);
-		 flyCam.setMoveSpeed(200);
-		 cam.setLocation(new Vector3f(0, 0f, -345f));
-		 cam.lookAtDirection(new Vector3f(0f, 0f, 0f), new Vector3f(1f, 1f, 1f));
+		flyCam.setMoveSpeed(200);
+		cam.setLocation(new Vector3f(0, 0f, -345f));
+		cam.lookAtDirection(new Vector3f(0f, 0f, 0f), new Vector3f(1f, 1f, 1f));
 		
+		switch_cam();
 
 	}
 
@@ -258,21 +262,68 @@ public class Main extends SimpleApplication {
 	private final ActionListener actionListener = new ActionListener() {
 		@Override
 		public void onAction(String name, boolean keyPressed, float tpf) {
+			if (name.equals("moremax") && !keyPressed) {				
+				MAX *= 1.3;
+				jlog.info("maxmimum number of loaded elements is now " + MAX);
+				stellarObjectNeo4jDAO.setLimit(MAX); 
+			}
+			if (name.equals("lessmax") && !keyPressed) {
+				MAX /= 1.5;
+				jlog.info("maxmimum number of loaded elements is now " + MAX);
+				stellarObjectNeo4jDAO.setLimit(MAX); 
+			}
 			if (name.equals("more") && !keyPressed) {
+				jlog.info("retrieving more data around actual position");
 				addRealm(cam.getLocation(), 30000.5f);
 
 			}
+			if (name.equals("cam") && !keyPressed) {
+				jlog.info("switching cam");
+				switch_cam();
+
+			}
+			if (name.equals("exit") && !keyPressed) {
+				jlog.info("exiting");
+				app.stop(false);
+		        System.exit(0);
+			}
 		}
+
 	};
+
+	private void switch_cam() {
+		if (fly_or_move) {
+
+			flyCam.setEnabled(false);
+
+			camNode.setEnabled(true);
+
+			cameraMotionControl.setSpeed(1);
+			cameraMotionControl.play();
+			fly_or_move = false;
+		}
+
+		else {
+
+			cameraMotionControl.stop();
+			camNode.setEnabled(false);
+			flyCam.setEnabled(true);
+			flyCam.setMoveSpeed(200);
+			cam.setLocation(new Vector3f(0, 0f, 0f));
+			cam.lookAtDirection(new Vector3f(0f, 0f, 0f), new Vector3f(1f, 1f, 1f));
+
+			fly_or_move = true;
+
+		}
+
+	}
+
 	private MotionPath path;
 	private CameraNode camNode;
 	private MotionEvent cameraMotionControl;
 
 	private void createCameraMotion() {
-
-		// CameraNode camNode = cinematic.bindCamera("topView", cam);
-
-		cam.setLocation(new Vector3f(8.4399185f, 11.189463f, 14.267577f));
+		cam.setLocation(new Vector3f(0f,0f,0f));
 		camNode = new CameraNode("Motion cam", cam);
 		camNode.setControlDir(ControlDirection.SpatialToCamera);
 		camNode.setEnabled(false);
@@ -286,14 +337,16 @@ public class Main extends SimpleApplication {
 		}
 		System.out.println(knCl);
 
-		path.setCurveTension(1.83f);
-		path.enableDebugShape(assetManager, rootNode);
+		path.setCurveTension(0.5f);
+		// path.enableDebugShape(assetManager, rootNode);
 
 		cameraMotionControl = new MotionEvent(camNode, path);
+		cameraMotionControl.setSpeed(1);
+
 		cameraMotionControl.setLoopMode(LoopMode.Loop);
-		// cameraMotionControl.setDuration(15f);
-		cameraMotionControl.setLookAt(rootNode.getWorldTranslation(), Vector3f.UNIT_Y);
-		cameraMotionControl.setDirectionType(MotionEvent.Direction.LookAt);
+		cameraMotionControl.setInitialDuration(1500f);
+		//cameraMotionControl.setLookAt(rootNode.getWorldTranslation(), Vector3f.UNIT_Y);
+		cameraMotionControl.setDirectionType(MotionEvent.Direction.Path);
 
 		rootNode.attachChild(camNode);
 
@@ -318,6 +371,7 @@ public class Main extends SimpleApplication {
 		flyCam.setEnabled(false);
 		camNode.setEnabled(true);
 		cameraMotionControl.play();
+
 	}
 
 }

@@ -55,12 +55,12 @@ CREATE INDEX ON :Node(name)
    Load the Synstes as words - adapt the path
       
 ```
-LOAD CSV WITH HEADERS FROM 'file:////home/.../eclipse-workspace/hal/knowledge_graph_3d_choords.csv' AS line
+LOAD CSV WITH HEADERS FROM 'file:////home/stefan/eclipse-workspace/hal/data/knowledge_graph_3d_choords.csv' AS line
 CREATE (:Node { 
 	name: line.name, id:line.id, 
 	x_pca:toFloat(line.x_pca), y_pca:toFloat(line.y_pca), z_pca:toFloat(line.z_pca), 
 	x_tsne:toFloat(line.x_tsne), y_tsne:toFloat(line.y_tsne), z_tsne:toFloat(line.z_tsne), 
-	x_k2:toFloat(line.x_k2), y_k2:toFloat(line.y_k2), z_k2:toFloat(line.z_k2)})
+	x_k2:toFloat(line.x_k2), y_k2:toFloat(line.y_k2), z_k2:toFloat(line.z_k2), cl_pca:toInteger(line.cl_pca), cl_tsne:toInteger(line.cl_tsne),	cl_k2:toInteger(line.cl_k2), cl_kn:toInteger(line.cl_kn)})
 ```
 
    Load relationships (wordnet synonyms, anotnyms, hyponyms) - adapt the path

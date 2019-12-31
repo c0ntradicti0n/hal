@@ -16,16 +16,20 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 	private  Logger jlog =  Logger.getLogger("stellarObjectNeo4j");
 	
 	String kind;
+	static int limit;
+	public static String limitStr;
 	
-	public stellarObjectNeo4jDAO(String _kind)  {
+	
+	public stellarObjectNeo4jDAO(String _kind, int _limit)  {
 		kind = _kind;
+        setLimit(_limit);
 	}
 
 
 	public ArrayList<stellarObject> findByName(String name) {
 		String query =  "MATCH (n) " +
 	              "WHERE n.name  =~ \""+name+".*\" " +
-				  "RETURN n";
+				  "RETURN n" + limitStr ;
 		jlog.info(query);
 		
 		ArrayList<Record> res = gdb.query(query);
@@ -49,7 +53,7 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 
 	public HashMap<stellarObject, stellarObject> findByRel(String relation) {
 		String query =  "MATCH (n1)-[:R {kind:'"+relation+"'}]-(n2) WHERE id(n1)>id(n2) " +
-				  "RETURN n1, n2";
+				  "RETURN n1, n2"  + limitStr ;
 		jlog.info(query);
 		
 		ArrayList<Record> res = gdb.query(query);
@@ -84,7 +88,7 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 	                    "(n.y_"+kind+"-"+local_pos.getY() +")^2 + " +
 	                    "(n.z_"+kind+"-"+local_pos.getZ() +")^2 " +
 	                    " < " + radius +
-				  " RETURN n" ;
+				  " RETURN n " + limitStr ;
 		jlog.info(query);
 		
 		ArrayList<Record> res = gdb.query(query);
@@ -117,6 +121,12 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 		catch(NotMultiValued e)  {
 			System.out.println ("Result not convertable to point " + value + " " + kind);
 		}
+	}
+
+
+	public static void setLimit(int _limit) {
+		limit = _limit;
+		limitStr = " LIMIT "+limit;
 	}
 	
 	

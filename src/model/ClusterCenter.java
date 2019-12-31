@@ -166,10 +166,10 @@ public class ClusterCenter implements Serializable
 			return getPointPCA();
 		}
 		case "tsne": {
-			return getPointPCA();
+			return getPointTSNE();
 		}
 		case "k2": {
-			return getPointPCA();
+			return getPointK2();
 		}
 		}
 		return null;
