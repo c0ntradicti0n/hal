@@ -27,6 +27,17 @@ public class stellarObject {
         cl_kn   = value.get("cl_kn").asInt();
 	}
 
+
+
+	public stellarObject(CSVPoint p, String kind) {
+		name    = p.getName();
+        coords  =  p.getPointKind(kind);
+        cl_pca  = p.getCl_pca();
+        cl_tsne =p.getCl_tsne();
+        cl_k2   = p.getCl_k2();
+        cl_kn   =p.getCl_kn();
+	}
+
 	@Override
 	public String toString() {
 		return "stellarObject [name=" + name + ", coords=" + coords + "]";

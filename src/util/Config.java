@@ -1,7 +1,7 @@
 package util;
 
 public class Config {
-	final public static int UNIVERSEZOOM = 150; //00000;
+	final public static int UNIVERSEZOOM = 5; //00000;
 
 	
 

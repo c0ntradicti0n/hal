@@ -12,6 +12,13 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.neo4j.driver.internal.shaded.io.netty.util.internal.logging.Log4J2LoggerFactory;
 
 import com.aurellem.capture.Capture;
@@ -23,6 +30,9 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.cinematic.Cinematic;
 import com.jme3.cinematic.MotionPath;
 import com.jme3.cinematic.MotionPathListener;
+import com.jme3.cinematic.events.AbstractCinematicEvent;
+import com.jme3.cinematic.events.CinematicEvent;
+import com.jme3.cinematic.events.CinematicEventListener;
 import com.jme3.cinematic.events.MotionEvent;
 import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
@@ -36,11 +46,15 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.control.CameraControl.ControlDirection;
 import com.jme3.scene.shape.Line;
 import com.jme3.system.AppSettings;
+import com.jme3.system.JmeContext;
 import com.opencsv.bean.CsvToBeanBuilder;
 
+import dao.stellarObjectCSVDAO;
+import dao.stellarObjectDAO;
 import dao.stellarObjectNeo4jDAO;
 import jMonkeyGod.BigBall;
 import jMonkeyGod.StellarPoint;
+import model.CSVPoint;
 import model.ClusterCenter;
 
 import model.stellarObject;
@@ -48,20 +62,20 @@ import record.AbstractVideoRecorder;
 import record.FileVideoRecorder;
 import record.IsoTimer;
 import record.XuggleVideoRecorder;
+import util.CsvReader;
 
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.ViewPort;
 
 public class Main extends SimpleApplication {
-	private  Logger jlog =  Logger.getLogger("Main");
+	private Logger jlog = Logger.getLogger("Main");
 	static String kind = "tsne";
-	static int MAX = 600000;
-	static stellarObjectNeo4jDAO cosmic_dao = new stellarObjectNeo4jDAO(kind, MAX);
+	static int MAX = 600;
+	static stellarObjectDAO cosmic_dao;
 	private static Main app;
 	private BulletAppState physicsState = new BulletAppState();
 	boolean fly_or_move = true;
-
 
 	ArrayList<Geometry> stars = new ArrayList<>();
 	ArrayList<Material> materials = new ArrayList<>();
@@ -70,10 +84,60 @@ public class Main extends SimpleApplication {
 	private List<ClusterCenter> pcaCl;
 	private List<ClusterCenter> tsneCl;
 	private List<ClusterCenter> k2Cl;
-	private List<ClusterCenter> knCl;
+	private static List<ClusterCenter> knCl;
 	private ArrayList<ColorRGBA> clusterColors = new ArrayList<ColorRGBA>();
+	private static CommandLine cmd;
+	private static boolean useCsv;
 
 	public static void main(String[] args) {
+		List<CSVPoint> x = CsvReader.readCSVPoints("/home/stefan/PycharmProjects/allennlp_vs_ampligraph/knowledge_graph_coords/knowledge_graph_3d_choords.csv");
+		System.out.println(x);
+
+		
+		Options options = new Options();
+
+		Option input = new Option("a", "all", true, "universe coordinates csv path");
+		input.setRequired(false);
+		options.addOption(input);
+
+		Option pcaClPath = new Option("p", "pca", true, "pca cluster csv path");
+		input.setRequired(false);
+		options.addOption(pcaClPath);
+
+		Option tsneClPath = new Option("t", "tsne", true, "tsne cluster csv path");
+		input.setRequired(false);
+		options.addOption(tsneClPath);
+
+		Option keClPath = new Option("k", "ke", true, "knowledge embeddings cluster csv path");
+		input.setRequired(false);
+		options.addOption(keClPath);
+
+		Option k2ClPath = new Option("z", "k2", true, "k2 cluster csv path");
+		input.setRequired(false);
+		options.addOption(k2ClPath);
+		
+		Option headless = new Option("h", "headless");
+		input.setRequired(false);
+		options.addOption(headless);
+
+		CommandLineParser parser = new DefaultParser();
+		HelpFormatter formatter = new HelpFormatter();
+
+		try {
+			cmd = parser.parse(options, args);
+		} catch (ParseException e) {
+			System.out.println(e.getMessage());
+			formatter.printHelp("utility-name", options);
+
+			System.exit(1);
+		}
+
+		if (cmd.getOptionValue("all") != null) {
+			cosmic_dao = new stellarObjectCSVDAO(kind, MAX, cmd.getOptionValue("all"));
+			useCsv = true;
+		} else {
+			cosmic_dao = new stellarObjectNeo4jDAO(kind, MAX);
+		}
 
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		int w = gd.getDisplayMode().getWidth();
@@ -81,39 +145,42 @@ public class Main extends SimpleApplication {
 
 		System.out.println("w,h: " + w + "," + h);
 
-		AppSettings sets = new AppSettings(true);
-		sets.setTitle("LightNodeViewer");
-
-		sets.setWidth(w);
-		sets.setHeight(h);
-
-		sets.setFullscreen(true);
+		AppSettings settings = new AppSettings(true);
+		settings.put("Width", 1900);
+		settings.put("Height", 1200);
+		settings.put("Title", "hal");
+		settings.put("VSync", true);
+//Anti-Aliasing
+		settings.put("Samples", 4);
 
 		Main app = new Main();
-		
-		app.setTimer(new IsoTimer(30));
+		app.setShowSettings(false);
 		try {
 			Capture.captureVideo(app, new File("record.mp4"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		app.setTimer(new IsoTimer(30));
+		app.setSettings(settings);
 
-		app.setSettings(sets);
-		app.start(); // start the game
+		if (headless.getValue() != null ) {
+			app.start(JmeContext.Type.Headless);
+		} else {
+			app.start(); // start the game
+		}
 	}
 
 	static AbstractVideoRecorder videoRecorder = null;
 
 	public static void captureVideo(final Application app, final File file) throws IOException {
 		AbstractVideoRecorder videoRecorder = new XuggleVideoRecorder(file);
-		//AbstractVideoRecorder videoRecorder = new FileVideoRecorder(file);
+		// AbstractVideoRecorder videoRecorder = new FileVideoRecorder(file);
 		// if (file.getCanonicalPath().endsWith(".avi")) {
 		// videoRecorder = new AVIVideoRecorder(file);
 		// } else if (file.isDirectory()) {
 		// videoRecorder = new FileVideoRecorder(file);
 		// }
-
 
 		Callable<Object> thunk = new Callable<Object>() {
 			public Object call() {
@@ -185,7 +252,7 @@ public class Main extends SimpleApplication {
 	@Override
 	public void simpleInitApp() {
 		stateManager.attach(physicsState);
-		
+
 		// screenshot machine, press KeyInput.KEY_SYSRQ, "Druck"
 		ScreenshotAppState screenShotState = new ScreenshotAppState();
 		stateManager.attach(screenShotState);
@@ -199,17 +266,23 @@ public class Main extends SimpleApplication {
 		cam.setFrustumPerspective(fov, aspect, near, far);
 
 		// add some things to universe
-		addWordGroup("anti", ColorRGBA.Orange);
-		addWordGroup("contra", ColorRGBA.Magenta);
-		addWordGroup("non", ColorRGBA.Red);
-		addWordGroup("real", ColorRGBA.Blue);
-		addWordRelation("antonym", ColorRGBA.DarkGray);
-		List<stellarObject> ElementsInHorizon = cosmic_dao.findByName("dr");
+		if (!useCsv) {
+			addWordGroup("anti", ColorRGBA.Orange);
+			addWordGroup("contra", ColorRGBA.Magenta);
+			addWordGroup("non", ColorRGBA.Red);
+			addWordGroup("real", ColorRGBA.Blue);
+			addWordRelation("antonym", ColorRGBA.DarkGray);
+			List<stellarObject> ElementsInHorizon = cosmic_dao.findByName("dr");
+		}
 
 		// pcaCl = readClusterCenters("data/pca_clusters_mean_points.csv");
 		// tsneCl = readClusterCenters("data/tsne_clusters_mean_points.csv");
 		// k2Cl = readClusterCenters("data/k2_clusters_mean_points.csv");
-		knCl = readClusterCenters("data/kn_clusters_mean_points.csv");
+		if (cmd.getOptionValue("ke") != null) {
+			knCl = CsvReader.readClusterCenters(cmd.getOptionValue("ke"));
+		} else {
+			knCl = CsvReader.readClusterCenters("data/kn_clusters_mean_points.csv");
+		}
 
 		for (int i = 0; i < knCl.size() + 1; i++) {
 			// cl==-1 is for outliers
@@ -218,10 +291,11 @@ public class Main extends SimpleApplication {
 		clusterColors.add(0, ColorRGBA.Black);
 
 		// robot camera man
-		cinematic = new Cinematic(rootNode, 1000f);
+		cinematic = new Cinematic(rootNode, 4f);
 		stateManager.attach(cinematic);
 		createCameraMotion();
 		cinematic.activateCamera(0, "topView");
+		
 
 		// hotkeys
 		inputManager.addMapping("more", new KeyTrigger(KeyInput.KEY_M));
@@ -234,6 +308,8 @@ public class Main extends SimpleApplication {
 		inputManager.addListener(actionListener, "moremax");
 		inputManager.addMapping("lessmax", new KeyTrigger(KeyInput.KEY_MINUS));
 		inputManager.addListener(actionListener, "lessmax");
+		
+
 		addRealm(cam.getLocation(), 600000.5f);
 
 		cameraMotionControl.stop();
@@ -242,36 +318,23 @@ public class Main extends SimpleApplication {
 		flyCam.setMoveSpeed(200);
 		cam.setLocation(new Vector3f(0, 0f, -345f));
 		cam.lookAtDirection(new Vector3f(0f, 0f, 0f), new Vector3f(1f, 1f, 1f));
-		
+
 		switch_cam();
 
-	}
-
-	private List<ClusterCenter> readClusterCenters(String path) {
-		new File(path);
-		List<ClusterCenter> beans = null;
-		try {
-			beans = new CsvToBeanBuilder(new FileReader(path)).withSeparator('\t').withType(ClusterCenter.class).build()
-					.parse();
-		} catch (IllegalStateException | FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return beans;
 	}
 
 	private final ActionListener actionListener = new ActionListener() {
 		@Override
 		public void onAction(String name, boolean keyPressed, float tpf) {
-			if (name.equals("moremax") && !keyPressed) {				
+			if (name.equals("moremax") && !keyPressed) {
 				MAX *= 1.3;
 				jlog.info("maxmimum number of loaded elements is now " + MAX);
-				stellarObjectNeo4jDAO.setLimit(MAX); 
+				cosmic_dao.setLimit(MAX);
 			}
 			if (name.equals("lessmax") && !keyPressed) {
 				MAX /= 1.5;
 				jlog.info("maxmimum number of loaded elements is now " + MAX);
-				stellarObjectNeo4jDAO.setLimit(MAX); 
+				cosmic_dao.setLimit(MAX);
 			}
 			if (name.equals("more") && !keyPressed) {
 				jlog.info("retrieving more data around actual position");
@@ -285,12 +348,17 @@ public class Main extends SimpleApplication {
 			}
 			if (name.equals("exit") && !keyPressed) {
 				jlog.info("exiting");
-				app.stop(false);
-		        System.exit(0);
+				shutdown();
 			}
 		}
 
 	};
+
+	private void shutdown() {
+		app.stop(true);
+		//System.exit(0);
+
+	}
 
 	private void switch_cam() {
 		if (fly_or_move) {
@@ -301,6 +369,8 @@ public class Main extends SimpleApplication {
 
 			cameraMotionControl.setSpeed(1);
 			cameraMotionControl.play();
+			//cameraMotionControl.stop();
+
 			fly_or_move = false;
 		}
 
@@ -324,7 +394,7 @@ public class Main extends SimpleApplication {
 	private MotionEvent cameraMotionControl;
 
 	private void createCameraMotion() {
-		cam.setLocation(new Vector3f(0f,0f,0f));
+		cam.setLocation(new Vector3f(0f, 0f, 0f));
 		camNode = new CameraNode("Motion cam", cam);
 		camNode.setControlDir(ControlDirection.SpatialToCamera);
 		camNode.setEnabled(false);
@@ -344,9 +414,10 @@ public class Main extends SimpleApplication {
 		cameraMotionControl = new MotionEvent(camNode, path);
 		cameraMotionControl.setSpeed(1);
 
-		cameraMotionControl.setLoopMode(LoopMode.Loop);
-		cameraMotionControl.setInitialDuration(1500f);
-		//cameraMotionControl.setLookAt(rootNode.getWorldTranslation(), Vector3f.UNIT_Y);
+		cameraMotionControl.setLoopMode(LoopMode.DontLoop);
+		cameraMotionControl.setInitialDuration(10f);
+		// cameraMotionControl.setLookAt(rootNode.getWorldTranslation(),
+		// Vector3f.UNIT_Y);
 		cameraMotionControl.setDirectionType(MotionEvent.Direction.Path);
 
 		rootNode.attachChild(camNode);
@@ -356,10 +427,17 @@ public class Main extends SimpleApplication {
 		wayPointsText.setSize(guiFont.getCharSet().getRenderedSize());
 
 		guiNode.attachChild(wayPointsText);
-
+		
+		
 		path.addListener(new MotionPathListener() {
-
+            
 			public void onWayPointReach(MotionEvent control, int wayPointIndex) {
+				if (wayPointIndex >= knCl.size()) {
+					System.out.println("stopping " +  wayPointIndex + "/" +( knCl.size()));
+					shutdown();
+
+				}
+				System.out.println("travelling " +  wayPointIndex + "/" +( knCl.size()-2));
 				if (path.getNbWayPoints() == wayPointIndex + 1) {
 					wayPointsText.setText(control.getSpatial().getName() + " Finish!!! ");
 				} else {

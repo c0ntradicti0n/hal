@@ -25,7 +25,7 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
         setLimit(_limit);
 	}
 
-
+    @Override
 	public ArrayList<stellarObject> findByName(String name) {
 		String query =  "MATCH (n) " +
 	              "WHERE n.name  =~ \""+name+".*\" " +
@@ -50,7 +50,7 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 		return result;
 	}
 
-
+    @Override
 	public HashMap<stellarObject, stellarObject> findByRel(String relation) {
 		String query =  "MATCH (n1)-[:R {kind:'"+relation+"'}]-(n2) WHERE id(n1)>id(n2) " +
 				  "RETURN n1, n2"  + limitStr ;
@@ -81,7 +81,7 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 		return result;
 	}
 
-
+    @Override
 	public List<stellarObject> findByPosition(StellarPoint local_pos, float radius) {
 		String query =  "MATCH (n) " +
 	              "WHERE (n.x_"+kind+"-"+local_pos.getX() +")^2 + " +
@@ -113,6 +113,7 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 		return result;
 	}
 
+    @Override
 	public void tryAdd(ArrayList<stellarObject> result, Value value, String kind2)  {
 		try  {
 
@@ -123,8 +124,8 @@ public class stellarObjectNeo4jDAO implements stellarObjectDAO {
 		}
 	}
 
-
-	public static void setLimit(int _limit) {
+    @Override
+	public void setLimit(int _limit) {
 		limit = _limit;
 		limitStr = " LIMIT "+limit;
 	}
