@@ -355,9 +355,12 @@ public class Main extends SimpleApplication {
 	};
 
 	private void shutdown() {
+		try {
 		app.stop(true);
-		//System.exit(0);
-
+		}
+		catch (NullPointerException e ) {
+			System.out.println("shut down succesfull... :)");
+		}
 	}
 
 	private void switch_cam() {
