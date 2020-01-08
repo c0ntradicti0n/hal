@@ -7,3 +7,5 @@ videos
 assets
 data
 *.mp4
+*.so
+*.log

@@ -71,7 +71,7 @@ import com.jme3.renderer.ViewPort;
 public class Main extends SimpleApplication {
 	private Logger jlog = Logger.getLogger("Main");
 	static String kind = "tsne";
-	static int MAX = 600;
+	static volatile int MAX;
 	static stellarObjectDAO cosmic_dao;
 	private static Main app;
 	private BulletAppState physicsState = new BulletAppState();
@@ -80,7 +80,6 @@ public class Main extends SimpleApplication {
 	ArrayList<Geometry> stars = new ArrayList<>();
 	ArrayList<Material> materials = new ArrayList<>();
 	ArrayList<BigBall> balls = new ArrayList<>();
-	private Cinematic cinematic;
 	private List<ClusterCenter> pcaCl;
 	private List<ClusterCenter> tsneCl;
 	private List<ClusterCenter> k2Cl;
@@ -88,56 +87,44 @@ public class Main extends SimpleApplication {
 	private ArrayList<ColorRGBA> clusterColors = new ArrayList<ColorRGBA>();
 	private static CommandLine cmd;
 	private static boolean useCsv;
+	private static List<ClusterCenter> colors_by;
+	private static List<ClusterCenter> path_by;
+	private static Float velocity;																																																						
+	public static int UNIVERSE_ZOOM = 350; 
+	private Cinematic cinematic;
+	private MotionPath path;
+	private CameraNode camNode;
+	private MotionEvent cameraMotionControl;
 
-	public static void main(String[] args) {
-		List<CSVPoint> x = CsvReader.readCSVPoints("/home/stefan/PycharmProjects/allennlp_vs_ampligraph/knowledge_graph_coords/knowledge_graph_3d_choords.csv");
-		System.out.println(x);
 
-		
+	public static void main(String[] args) {	
 		Options options = new Options();
-
+		Option colors_opt = new Option("c", "colors", true, "colors");
+		Option path_opt = new Option("p", "path", true, "autopilot path");
+		Option velocity_opt = new Option("v", "velocity", true, "mean time per path point");
+		Option headless_opt = new Option("h", "headless");
 		Option input = new Option("a", "all", true, "universe coordinates csv path");
-		input.setRequired(false);
+		Option max_opt = new Option("m", "max", true, "max number of entities to show");
+		Option density_opt = new Option("d", "density", true, "density of entities to show, human size normalisation of your coordinates");
+
 		options.addOption(input);
-
-		Option pcaClPath = new Option("p", "pca", true, "pca cluster csv path");
-		input.setRequired(false);
-		options.addOption(pcaClPath);
-
-		Option tsneClPath = new Option("t", "tsne", true, "tsne cluster csv path");
-		input.setRequired(false);
-		options.addOption(tsneClPath);
-
-		Option keClPath = new Option("k", "ke", true, "knowledge embeddings cluster csv path");
-		input.setRequired(false);
-		options.addOption(keClPath);
-
-		Option k2ClPath = new Option("z", "k2", true, "k2 cluster csv path");
-		input.setRequired(false);
-		options.addOption(k2ClPath);
-		
-		Option headless = new Option("h", "headless");
-		input.setRequired(false);
-		options.addOption(headless);
+		options.addOption(colors_opt);
+		options.addOption(path_opt);
+		options.addOption(velocity_opt);
+		options.addOption(headless_opt);
+		options.addOption(max_opt);
+		options.addOption(density_opt);
 
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
-
 		try {
 			cmd = parser.parse(options, args);
 		} catch (ParseException e) {
 			System.out.println(e.getMessage());
 			formatter.printHelp("utility-name", options);
-
 			System.exit(1);
 		}
 
-		if (cmd.getOptionValue("all") != null) {
-			cosmic_dao = new stellarObjectCSVDAO(kind, MAX, cmd.getOptionValue("all"));
-			useCsv = true;
-		} else {
-			cosmic_dao = new stellarObjectNeo4jDAO(kind, MAX);
-		}
 
 		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		int w = gd.getDisplayMode().getWidth();
@@ -150,10 +137,10 @@ public class Main extends SimpleApplication {
 		settings.put("Height", 1200);
 		settings.put("Title", "hal");
 		settings.put("VSync", true);
-//Anti-Aliasing
 		settings.put("Samples", 4);
 
 		Main app = new Main();
+		app.setSettings(settings);
 		app.setShowSettings(false);
 		try {
 			Capture.captureVideo(app, new File("record.mp4"));
@@ -162,12 +149,39 @@ public class Main extends SimpleApplication {
 			e.printStackTrace();
 		}
 		app.setTimer(new IsoTimer(30));
-		app.setSettings(settings);
 
-		if (headless.getValue() != null ) {
+		if (headless_opt.getValue() != null ) {
 			app.start(JmeContext.Type.Headless);
 		} else {
 			app.start(); // start the game
+		}
+		String colors_by_path =  "data/kn_clusters_mean_points.csv";
+		if (colors_opt.getValue() != null ) {
+			colors_by_path = colors_opt.getValue();
+		} 
+		colors_by = CsvReader.readClusterCenters(colors_by_path);
+		String path_by_path = "data/kn_clusters_mean_points.csv";
+		if (path_opt.getValue() != null ) {
+			path_by_path = path_opt.getValue();
+		}
+		path_by = CsvReader.readClusterCenters(path_by_path);
+		velocity = 1f;
+		if (velocity_opt.getValue() != null ) {
+			velocity = Float.valueOf(velocity_opt.getValue());
+		}
+		MAX = 1000000;
+		if (max_opt.getValue() != null ) {
+			MAX = Integer.valueOf(max_opt.getValue());
+		}
+		if (max_opt.getValue() != null ) {
+			UNIVERSE_ZOOM = Integer.valueOf(density_opt.getValue());
+		}
+
+		if (cmd.getOptionValue("all") != null) {
+			cosmic_dao = new stellarObjectCSVDAO(kind, MAX, cmd.getOptionValue("all"));
+			useCsv = true;
+		} else {
+			cosmic_dao = new stellarObjectNeo4jDAO(kind, MAX);
 		}
 	}
 
@@ -266,25 +280,21 @@ public class Main extends SimpleApplication {
 		cam.setFrustumPerspective(fov, aspect, near, far);
 
 		// add some things to universe
-		if (!useCsv) {
+		/*if (!useCsv) {
 			addWordGroup("anti", ColorRGBA.Orange);
 			addWordGroup("contra", ColorRGBA.Magenta);
 			addWordGroup("non", ColorRGBA.Red);
 			addWordGroup("real", ColorRGBA.Blue);
 			addWordRelation("antonym", ColorRGBA.DarkGray);
 			List<stellarObject> ElementsInHorizon = cosmic_dao.findByName("dr");
-		}
+		}*/
 
 		// pcaCl = readClusterCenters("data/pca_clusters_mean_points.csv");
 		// tsneCl = readClusterCenters("data/tsne_clusters_mean_points.csv");
 		// k2Cl = readClusterCenters("data/k2_clusters_mean_points.csv");
-		if (cmd.getOptionValue("ke") != null) {
-			knCl = CsvReader.readClusterCenters(cmd.getOptionValue("ke"));
-		} else {
-			knCl = CsvReader.readClusterCenters("data/kn_clusters_mean_points.csv");
-		}
 
-		for (int i = 0; i < knCl.size() + 1; i++) {
+
+		for (int i = 0; i < path_by.size() + 1; i++) {
 			// cl==-1 is for outliers
 			clusterColors.add(ColorRGBA.randomColor());
 		}
@@ -392,10 +402,6 @@ public class Main extends SimpleApplication {
 
 	}
 
-	private MotionPath path;
-	private CameraNode camNode;
-	private MotionEvent cameraMotionControl;
-
 	private void createCameraMotion() {
 		cam.setLocation(new Vector3f(0f, 0f, 0f));
 		camNode = new CameraNode("Motion cam", cam);
@@ -403,13 +409,12 @@ public class Main extends SimpleApplication {
 		camNode.setEnabled(false);
 		path = new MotionPath();
 		path.setCycle(true);
-		for (ClusterCenter cl : knCl) {
+		for (ClusterCenter cl : colors_by) {
 			Vector3f sP = (new StellarPoint(cl.getPointKind(kind)).getVector());
 			System.out.println(sP);
 
 			path.addWayPoint(sP);
 		}
-		System.out.println(knCl);
 
 		path.setCurveTension(0.5f);
 		// path.enableDebugShape(assetManager, rootNode);
@@ -418,7 +423,10 @@ public class Main extends SimpleApplication {
 		cameraMotionControl.setSpeed(1);
 
 		cameraMotionControl.setLoopMode(LoopMode.DontLoop);
-		cameraMotionControl.setInitialDuration(10f);
+		System.out.print ( path_by.size());
+		System.out.print ( velocity);
+
+		cameraMotionControl.setInitialDuration(velocity * path_by.size());
 		// cameraMotionControl.setLookAt(rootNode.getWorldTranslation(),
 		// Vector3f.UNIT_Y);
 		cameraMotionControl.setDirectionType(MotionEvent.Direction.Path);
@@ -435,12 +443,12 @@ public class Main extends SimpleApplication {
 		path.addListener(new MotionPathListener() {
             
 			public void onWayPointReach(MotionEvent control, int wayPointIndex) {
-				if (wayPointIndex >= knCl.size()) {
-					System.out.println("stopping " +  wayPointIndex + "/" +( knCl.size()));
+				if (wayPointIndex >= path_by.size()) {
+					System.out.println("stopping " +  wayPointIndex + "/" +( path_by.size()));
 					shutdown();
 
 				}
-				System.out.println("travelling " +  wayPointIndex + "/" +( knCl.size()-2));
+				System.out.println("travelling " +  wayPointIndex + "/" +( path_by.size()-2));
 				if (path.getNbWayPoints() == wayPointIndex + 1) {
 					wayPointsText.setText(control.getSpatial().getName() + " Finish!!! ");
 				} else {

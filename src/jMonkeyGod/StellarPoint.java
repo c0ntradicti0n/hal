@@ -2,7 +2,7 @@ package jMonkeyGod;
 
 import com.jme3.math.Vector3f;
 
-import util.Config;
+import core.Main;
 
 public class StellarPoint{
 	private float uX, uY, uZ;
@@ -40,19 +40,19 @@ public class StellarPoint{
 		return uX;
 	}
 	private void setuX(double x) {
-		this.uX = (float) (x * Config.UNIVERSEZOOM) /* -Config.UNIVERSEZOOM*/;
+		this.uX = (float) (x * Main.UNIVERSE_ZOOM) /* -Config.UNIVERSEZOOM*/;
 	}
 	public float getuY() {
 		return uY;
 	}
 	private void setuY(double y) {
-		this.uY =  (float) (y * Config.UNIVERSEZOOM) /* -Config.UNIVERSEZOOM*/;
+		this.uY =  (float) (y * Main.UNIVERSE_ZOOM) /* -Config.UNIVERSEZOOM*/;
 	}
 	public float getuZ() {
 		return uZ;
 	}
 	private void setuZ(double z) {
-		this.uZ = (float) (z * Config.UNIVERSEZOOM) /* -Config.UNIVERSEZOOM*/;
+		this.uZ = (float) (z * Main.UNIVERSE_ZOOM) /* -Config.UNIVERSEZOOM*/;
 	}
 	
 	public Vector3f getVector()  {
@@ -69,19 +69,19 @@ public class StellarPoint{
 		this.x = x;
 	}
 	private void setx(double uX) {
-		x = (float) (uX /* -Config.UNIVERSEZOOM*/) / Config.UNIVERSEZOOM;
+		x = (float) (uX /* -Config.UNIVERSEZOOM*/) / Main.UNIVERSE_ZOOM;
 	}
 	public double getY() {
 		return y;
 	}
 	public void sety(double uY) {
-		y = (float) (uY/* -Config.UNIVERSEZOOM*/) / Config.UNIVERSEZOOM;
+		y = (float) (uY/* -Config.UNIVERSEZOOM*/) / Main.UNIVERSE_ZOOM;
 	}
 	public double getZ() {
 		return z;
 	}
 	public void setz(double uZ) {
-		z = (float) (uZ /* -Config.UNIVERSEZOOM*/) / Config.UNIVERSEZOOM;
+		z = (float) (uZ /* -Config.UNIVERSEZOOM*/) / Main.UNIVERSE_ZOOM;
 	}
 	@Override
 	public String toString() {
