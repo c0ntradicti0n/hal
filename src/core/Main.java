@@ -47,6 +47,7 @@ import com.jme3.scene.control.CameraControl.ControlDirection;
 import com.jme3.scene.shape.Line;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
+import com.jme3.system.NullRenderer;
 import com.opencsv.bean.CsvToBeanBuilder;
 
 import dao.stellarObjectCSVDAO;
@@ -69,7 +70,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.ViewPort;
 
 public class Main extends SimpleApplication {
-	private Logger jlog = Logger.getLogger("Main");
+	private static Logger jlog = Logger.getLogger("Main");
 	static String kind = "tsne";
 	static volatile int MAX;
 	static stellarObjectDAO cosmic_dao;
@@ -102,7 +103,7 @@ public class Main extends SimpleApplication {
 		Option colors_opt = new Option("c", "colors", true, "colors");
 		Option path_opt = new Option("p", "path", true, "autopilot path");
 		Option velocity_opt = new Option("v", "velocity", true, "mean time per path point");
-		Option headless_opt = new Option("h", "headless");
+		Option headless_opt = new Option("h", "headless", true, "mean time per path point");
 		Option input = new Option("a", "all", true, "universe coordinates csv path");
 		Option max_opt = new Option("m", "max", true, "max number of entities to show");
 		Option density_opt = new Option("d", "density", true, "density of entities to show, human size normalisation of your coordinates");
@@ -150,31 +151,31 @@ public class Main extends SimpleApplication {
 		}
 		app.setTimer(new IsoTimer(30));
 
-		if (headless_opt.getValue() != null ) {
-			app.start(JmeContext.Type.Headless);
-		} else {
-			app.start(); // start the game
-		}
+
 		String colors_by_path =  "data/kn_clusters_mean_points.csv";
-		if (colors_opt.getValue() != null ) {
-			colors_by_path = colors_opt.getValue();
+		if (cmd.hasOption("colors")) {
+		 jlog.info(colors_opt.getValue());
+			colors_by_path = cmd.getOptionValue("colors");
 		} 
 		colors_by = CsvReader.readClusterCenters(colors_by_path);
+		
 		String path_by_path = "data/kn_clusters_mean_points.csv";
-		if (path_opt.getValue() != null ) {
+		if (cmd.hasOption("path")) {
+			jlog.info(cmd.getOptionValue("path"));
 			path_by_path = path_opt.getValue();
 		}
 		path_by = CsvReader.readClusterCenters(path_by_path);
+		
 		velocity = 1f;
-		if (velocity_opt.getValue() != null ) {
-			velocity = Float.valueOf(velocity_opt.getValue());
+		if (cmd.hasOption("velocity")) {
+			velocity = Float.valueOf(cmd.getOptionValue("velocity"));
 		}
 		MAX = 1000000;
-		if (max_opt.getValue() != null ) {
-			MAX = Integer.valueOf(max_opt.getValue());
+		if (cmd.hasOption("max")) {
+			MAX = Integer.valueOf(cmd.getOptionValue("max"));
 		}
-		if (max_opt.getValue() != null ) {
-			UNIVERSE_ZOOM = Integer.valueOf(density_opt.getValue());
+		if (cmd.hasOption("density")) {
+			UNIVERSE_ZOOM = Integer.valueOf(cmd.getOptionValue("density"));
 		}
 
 		if (cmd.getOptionValue("all") != null) {
@@ -182,6 +183,15 @@ public class Main extends SimpleApplication {
 			useCsv = true;
 		} else {
 			cosmic_dao = new stellarObjectNeo4jDAO(kind, MAX);
+		}
+		
+		if (cmd.hasOption("h")) {
+			//settings.setAudioRenderer(new NullRenderer());
+			app.setSettings(settings);
+
+			app.start(JmeContext.Type.Headless);
+		} else {
+			app.start(); // start the game
 		}
 	}
 
