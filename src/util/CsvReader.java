@@ -14,6 +14,7 @@ public class CsvReader {
 
 	public static List<ClusterCenter> readClusterCenters(String path) {
 		new File(path);
+		System.out.println(path);
 		List<ClusterCenter> beans = null;
 		try {
 			beans = new CsvToBeanBuilder(new FileReader(path)).withSeparator('\t').withType(ClusterCenter.class).build()

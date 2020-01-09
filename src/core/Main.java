@@ -145,6 +145,7 @@ public class Main extends SimpleApplication {
 		app.setShowSettings(false);
 		try {
 			Capture.captureVideo(app, new File("record.mp4"));
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -154,15 +155,15 @@ public class Main extends SimpleApplication {
 
 		String colors_by_path =  "data/kn_clusters_mean_points.csv";
 		if (cmd.hasOption("colors")) {
-		 jlog.info(colors_opt.getValue());
+		 jlog.info("Colors loading: " + cmd.getOptionValue("colors"));
 			colors_by_path = cmd.getOptionValue("colors");
 		} 
 		colors_by = CsvReader.readClusterCenters(colors_by_path);
 		
 		String path_by_path = "data/kn_clusters_mean_points.csv";
 		if (cmd.hasOption("path")) {
-			jlog.info(cmd.getOptionValue("path"));
-			path_by_path = path_opt.getValue();
+			jlog.info("Path loading " + cmd.getOptionValue("path"));
+			path_by_path =  cmd.getOptionValue("path");
 		}
 		path_by = CsvReader.readClusterCenters(path_by_path);
 		
@@ -170,7 +171,7 @@ public class Main extends SimpleApplication {
 		if (cmd.hasOption("velocity")) {
 			velocity = Float.valueOf(cmd.getOptionValue("velocity"));
 		}
-		MAX = 1000000;
+		MAX = 10000;
 		if (cmd.hasOption("max")) {
 			MAX = Integer.valueOf(cmd.getOptionValue("max"));
 		}
@@ -392,7 +393,6 @@ public class Main extends SimpleApplication {
 
 			cameraMotionControl.setSpeed(1);
 			cameraMotionControl.play();
-			//cameraMotionControl.stop();
 
 			fly_or_move = false;
 		}
@@ -453,12 +453,12 @@ public class Main extends SimpleApplication {
 		path.addListener(new MotionPathListener() {
             
 			public void onWayPointReach(MotionEvent control, int wayPointIndex) {
-				if (wayPointIndex >= path_by.size()) {
+				if (wayPointIndex >= path_by.size()-1) {
 					System.out.println("stopping " +  wayPointIndex + "/" +( path_by.size()));
 					shutdown();
 
 				}
-				System.out.println("travelling " +  wayPointIndex + "/" +( path_by.size()-2));
+				System.out.println("travelling " +  wayPointIndex + "/" +( path_by.size()-1));
 				if (path.getNbWayPoints() == wayPointIndex + 1) {
 					wayPointsText.setText(control.getSpatial().getName() + " Finish!!! ");
 				} else {
