@@ -84,10 +84,11 @@ public class Capture {
      * @param file The file to which the video will be captured. 
      * @throws IOException
      */
-	
-    public static void captureVideo
+	public static XuggleVideoRecorder videoRecorder = null;
+
+	public static void captureVideo
 	(final Application app, final File file) throws IOException{
-	final XuggleVideoRecorder videoRecorder = new XuggleVideoRecorder(file);
+		videoRecorder	= new XuggleVideoRecorder(file);
 
 	//if (file.getCanonicalPath().endsWith(".avi")){
 	//    videoRecorder = new AVIVideoRecorder(file);}

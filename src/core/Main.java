@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
+import com.jme3.app.StatsAppState;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -47,7 +48,6 @@ import com.jme3.scene.control.CameraControl.ControlDirection;
 import com.jme3.scene.shape.Line;
 import com.jme3.system.AppSettings;
 import com.jme3.system.JmeContext;
-import com.jme3.system.NullRenderer;
 import com.opencsv.bean.CsvToBeanBuilder;
 
 import dao.stellarObjectCSVDAO;
@@ -134,11 +134,11 @@ public class Main extends SimpleApplication {
 		System.out.println("w,h: " + w + "," + h);
 
 		AppSettings settings = new AppSettings(true);
-		settings.put("Width", 1900);
-		settings.put("Height", 1200);
+		settings.put("Width", 2500);
+		settings.put("Height", 1800);
 		settings.put("Title", "hal");
 		settings.put("VSync", true);
-		settings.put("Samples", 4);
+		settings.put("Samples", 1);
 
 		Main app = new Main();
 		app.setSettings(settings);
@@ -171,7 +171,7 @@ public class Main extends SimpleApplication {
 		if (cmd.hasOption("velocity")) {
 			velocity = Float.valueOf(cmd.getOptionValue("velocity"));
 		}
-		MAX = 10000;
+		MAX = 100000;
 		if (cmd.hasOption("max")) {
 			MAX = Integer.valueOf(cmd.getOptionValue("max"));
 		}
@@ -187,10 +187,9 @@ public class Main extends SimpleApplication {
 		}
 		
 		if (cmd.hasOption("h")) {
-			//settings.setAudioRenderer(new NullRenderer());
+			settings.setRenderer(AppSettings.LWJGL_OPENGL2);
 			app.setSettings(settings);
-
-			app.start(JmeContext.Type.Headless);
+			app.start(JmeContext.Type.OffscreenSurface);
 		} else {
 			app.start(); // start the game
 		}
@@ -305,7 +304,7 @@ public class Main extends SimpleApplication {
 		// k2Cl = readClusterCenters("data/k2_clusters_mean_points.csv");
 
 
-		for (int i = 0; i < path_by.size() + 1; i++) {
+		for (int i = 0; i < path_by.size() + 5; i++) {
 			// cl==-1 is for outliers
 			clusterColors.add(ColorRGBA.randomColor());
 		}
@@ -376,11 +375,18 @@ public class Main extends SimpleApplication {
 	};
 
 	private void shutdown() {
+		Capture.videoRecorder.finish();
+		super.stop();
+		this.stop();
+
 		try {
-		app.stop(true);
+		app.stop();
 		}
 		catch (NullPointerException e ) {
 			System.out.println("shut down succesfull... :)");
+		}
+		finally {
+			System.exit(0);
 		}
 	}
 
@@ -453,7 +459,7 @@ public class Main extends SimpleApplication {
 		path.addListener(new MotionPathListener() {
             
 			public void onWayPointReach(MotionEvent control, int wayPointIndex) {
-				if (wayPointIndex >= path_by.size()-1) {
+				if (wayPointIndex >= path_by.size()) {
 					System.out.println("stopping " +  wayPointIndex + "/" +( path_by.size()));
 					shutdown();
 

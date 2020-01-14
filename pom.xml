@@ -9,7 +9,7 @@
 		<!-- JMonkey stats -->
 		<jme3_g>org.jmonkeyengine</jme3_g>
 		<!-- Check the last version -->
-		<jme3_v>3.2.0-stable</jme3_v>
+		<jme3_v>3.2.2-stable</jme3_v>
 	</properties>
 	<repositories>
 		<repository>
