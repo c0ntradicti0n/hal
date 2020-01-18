@@ -187,7 +187,7 @@ public class Main extends SimpleApplication {
 		}
 		
 		if (cmd.hasOption("h")) {
-			settings.setRenderer(AppSettings.LWJGL_OPENGL2);
+			//settings.setRenderer(AppSettings.LWJGL_OPENGL2);
 			app.setSettings(settings);
 			app.setShowSettings(false);
 			app.start(JmeContext.Type.OffscreenSurface);
