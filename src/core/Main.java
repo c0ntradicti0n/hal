@@ -126,12 +126,13 @@ public class Main extends SimpleApplication {
 			System.exit(1);
 		}
 
-
-		GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-		int w = gd.getDisplayMode().getWidth();
-		int h = gd.getDisplayMode().getHeight();
-
-		System.out.println("w,h: " + w + "," + h);
+//        if (!cmd.hasOption("h")) {
+//			GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+//			int w = gd.getDisplayMode().getWidth();
+//			int h = gd.getDisplayMode().getHeight();
+//
+//			System.out.println("w,h: " + w + "," + h);
+//		}
 
 		AppSettings settings = new AppSettings(true);
 		settings.put("Width", 2500);
@@ -142,7 +143,6 @@ public class Main extends SimpleApplication {
 
 		Main app = new Main();
 		app.setSettings(settings);
-		app.setShowSettings(false);
 		try {
 			Capture.captureVideo(app, new File("record.mp4"));
 
@@ -189,6 +189,7 @@ public class Main extends SimpleApplication {
 		if (cmd.hasOption("h")) {
 			settings.setRenderer(AppSettings.LWJGL_OPENGL2);
 			app.setSettings(settings);
+			app.setShowSettings(false);
 			app.start(JmeContext.Type.OffscreenSurface);
 		} else {
 			app.start(); // start the game
