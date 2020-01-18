@@ -171,7 +171,7 @@ public class Main extends SimpleApplication {
 		if (cmd.hasOption("velocity")) {
 			velocity = Float.valueOf(cmd.getOptionValue("velocity"));
 		}
-		MAX = 100000;
+		MAX = 10000;
 		if (cmd.hasOption("max")) {
 			MAX = Integer.valueOf(cmd.getOptionValue("max"));
 		}
@@ -188,7 +188,7 @@ public class Main extends SimpleApplication {
 
 		if (cmd.hasOption("h")) {
 
-					settings.setRenderer(AppSettings.LWJGL_OPENGL2);
+     			settings.setRenderer(AppSettings.LWJGL_OPENGL2);
 
 				app.setSettings(settings);
 				app.setShowSettings(false);
@@ -463,7 +463,7 @@ public class Main extends SimpleApplication {
 		path.addListener(new MotionPathListener() {
 
 			public void onWayPointReach(MotionEvent control, int wayPointIndex) {
-				if (wayPointIndex >= path_by.size()) {
+				if (wayPointIndex >= path_by.size()-5) {
 					System.out.println("stopping " +  wayPointIndex + "/" +( path_by.size()));
 					shutdown();
 
