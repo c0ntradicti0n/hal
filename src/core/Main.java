@@ -90,15 +90,15 @@ public class Main extends SimpleApplication {
 	private static boolean useCsv;
 	private static List<ClusterCenter> colors_by;
 	private static List<ClusterCenter> path_by;
-	private static Float velocity;																																																						
-	public static int UNIVERSE_ZOOM = 350; 
+	private static Float velocity;
+	public static int UNIVERSE_ZOOM = 350;
 	private Cinematic cinematic;
 	private MotionPath path;
 	private CameraNode camNode;
 	private MotionEvent cameraMotionControl;
 
 
-	public static void main(String[] args) {	
+	public static void main(String[] args) {
 		Options options = new Options();
 		Option colors_opt = new Option("c", "colors", true, "colors");
 		Option path_opt = new Option("p", "path", true, "autopilot path");
@@ -157,16 +157,16 @@ public class Main extends SimpleApplication {
 		if (cmd.hasOption("colors")) {
 		 jlog.info("Colors loading: " + cmd.getOptionValue("colors"));
 			colors_by_path = cmd.getOptionValue("colors");
-		} 
+		}
 		colors_by = CsvReader.readClusterCenters(colors_by_path);
-		
+
 		String path_by_path = "data/kn_clusters_mean_points.csv";
 		if (cmd.hasOption("path")) {
 			jlog.info("Path loading " + cmd.getOptionValue("path"));
 			path_by_path =  cmd.getOptionValue("path");
 		}
 		path_by = CsvReader.readClusterCenters(path_by_path);
-		
+
 		velocity = 1f;
 		if (cmd.hasOption("velocity")) {
 			velocity = Float.valueOf(cmd.getOptionValue("velocity"));
@@ -185,12 +185,15 @@ public class Main extends SimpleApplication {
 		} else {
 			cosmic_dao = new stellarObjectNeo4jDAO(kind, MAX);
 		}
-		
+
 		if (cmd.hasOption("h")) {
-			//settings.setRenderer(AppSettings.LWJGL_OPENGL2);
-			app.setSettings(settings);
-			app.setShowSettings(false);
-			app.start(JmeContext.Type.OffscreenSurface);
+
+					settings.setRenderer(AppSettings.LWJGL_OPENGL2);
+
+				app.setSettings(settings);
+				app.setShowSettings(false);
+				app.start(JmeContext.Type.OffscreenSurface);
+
 		} else {
 			app.start(); // start the game
 		}
@@ -316,7 +319,7 @@ public class Main extends SimpleApplication {
 		stateManager.attach(cinematic);
 		createCameraMotion();
 		cinematic.activateCamera(0, "topView");
-		
+
 
 		// hotkeys
 		inputManager.addMapping("more", new KeyTrigger(KeyInput.KEY_M));
@@ -329,7 +332,7 @@ public class Main extends SimpleApplication {
 		inputManager.addListener(actionListener, "moremax");
 		inputManager.addMapping("lessmax", new KeyTrigger(KeyInput.KEY_MINUS));
 		inputManager.addListener(actionListener, "lessmax");
-		
+
 
 		addRealm(cam.getLocation(), 600000.5f);
 
@@ -455,10 +458,10 @@ public class Main extends SimpleApplication {
 		wayPointsText.setSize(guiFont.getCharSet().getRenderedSize());
 
 		guiNode.attachChild(wayPointsText);
-		
-		
+
+
 		path.addListener(new MotionPathListener() {
-            
+
 			public void onWayPointReach(MotionEvent control, int wayPointIndex) {
 				if (wayPointIndex >= path_by.size()) {
 					System.out.println("stopping " +  wayPointIndex + "/" +( path_by.size()));
