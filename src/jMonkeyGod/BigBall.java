@@ -88,11 +88,26 @@ public class BigBall{
 	public BitmapText addLabel(LabelControl lc)  {
 		BitmapText label = new BitmapText(font, false);
 		label.setSize(5);
-		label.setText(sphere.getName()); 
+		label.setText(BigBall.wrapString(sphere.getName(), "\n",  50));
 		label.setColor(new ColorRGBA(0f,0f,0f,1f));
 		label.setQueueBucket(Bucket.Transparent);
 		label.addControl(lc);
 		return label;
+	}
+
+	public static String wrapString(String s, String deliminator, int length) {
+		String result = "";
+		int lastdelimPos = 0;
+		for (String token : s.split(" ", -1)) {
+			if (result.length() - lastdelimPos + token.length() > length) {
+				result = result + deliminator + token;
+				lastdelimPos = result.length() + 1;
+			}
+			else {
+				result += (result.isEmpty() ? "" : " ") + token;
+			}
+		}
+		return result;
 	}
 	
 }
