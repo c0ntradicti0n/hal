@@ -88,7 +88,7 @@ public class BigBall{
 	public BitmapText addLabel(LabelControl lc)  {
 		BitmapText label = new BitmapText(font, false);
 		label.setSize(5);
-		label.setText(BigBall.wrapString(sphere.getName(), "\n",  50));
+		label.setText(BigBall.wrapString(sphere.getName(), "\n",  80));
 		label.setColor(new ColorRGBA(0f,0f,0f,1f));
 		label.setQueueBucket(Bucket.Transparent);
 		label.addControl(lc);
