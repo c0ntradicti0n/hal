@@ -463,7 +463,7 @@ public class Main extends SimpleApplication {
 		path.addListener(new MotionPathListener() {
 
 			public void onWayPointReach(MotionEvent control, int wayPointIndex) {
-				if (wayPointIndex >=10 ) { //>= path_by.size()-5) {
+				if (wayPointIndex >= path_by.size()/2) {
 					System.out.println("stopping " +  wayPointIndex + "/" +( path_by.size()));
 					shutdown();
 
