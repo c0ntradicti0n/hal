@@ -192,7 +192,7 @@ public class Main extends SimpleApplication {
 
 			app.setSettings(settings);
 			app.setShowSettings(false);
-			//app.start(JmeContext.Type.OffscreenSurface);
+			app.start(JmeContext.Type.OffscreenSurface);
 
 		} else {
 			app.start(); // start the game
