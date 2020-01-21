@@ -188,7 +188,7 @@ public class Main extends SimpleApplication {
 
 		if (cmd.hasOption("h")) {
 
-     			settings.setRenderer(AppSettings.LWJGL_OPENGL44);
+     			settings.setRenderer(AppSettings.LWJGL_OPENGL4);
 
 				app.setSettings(settings);
 				app.setShowSettings(false);
