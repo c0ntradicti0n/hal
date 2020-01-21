@@ -188,7 +188,7 @@ public class Main extends SimpleApplication {
 
 		if (cmd.hasOption("h")) {
 
-     			settings.setRenderer(AppSettings.JOGL_OPENGL_BACKWARD_COMPATIBLE);
+     			settings.setRenderer(AppSettings.LWJGL_OPENAL);
 
 				app.setSettings(settings);
 				app.setShowSettings(false);
