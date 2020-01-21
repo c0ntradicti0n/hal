@@ -200,7 +200,7 @@ public class Main extends SimpleApplication {
 	}
 
 	static AbstractVideoRecorder videoRecorder = null;
-git check
+
 	public static void captureVideo(final Application app, final File file) throws IOException {
 		AbstractVideoRecorder videoRecorder = new XuggleVideoRecorder(file);
 		// AbstractVideoRecorder videoRecorder = new FileVideoRecorder(file);
