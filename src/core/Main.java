@@ -155,7 +155,7 @@ public class Main extends SimpleApplication {
 
 		String colors_by_path =  "data/kn_clusters_mean_points.csv";
 		if (cmd.hasOption("colors")) {
-		 jlog.info("Colors loading: " + cmd.getOptionValue("colors"));
+			jlog.info("Colors loading: " + cmd.getOptionValue("colors"));
 			colors_by_path = cmd.getOptionValue("colors");
 		}
 		colors_by = CsvReader.readClusterCenters(colors_by_path);
@@ -188,11 +188,11 @@ public class Main extends SimpleApplication {
 
 		if (cmd.hasOption("h")) {
 
-     			settings.setRenderer(AppSettings.LWJGL_OPENGL2);
+			settings.setRenderer(AppSettings.LWJGL_OPENGL2);
 
-				app.setSettings(settings);
-				app.setShowSettings(false);
-				//app.start(JmeContext.Type.OffscreenSurface);
+			app.setSettings(settings);
+			app.setShowSettings(false);
+			//app.start(JmeContext.Type.OffscreenSurface);
 
 		} else {
 			app.start(); // start the game
@@ -265,7 +265,7 @@ public class Main extends SimpleApplication {
 		int i = 0;
 		for (stellarObject dataObi : ElementsInHorizon) {
 			Material knowledgeMaterial = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"); // create a
-																											// simple
+			// simple
 
 			knowledgeMaterial.setColor("Color", clusterColors.get(dataObi.cl_kn + 1));
 			// System.out.println(clusterColors.get(dataObi.cl_kn +1).toString() + " <- " +
@@ -384,7 +384,7 @@ public class Main extends SimpleApplication {
 		this.stop();
 
 		try {
-		app.stop();
+			app.stop();
 		}
 		catch (NullPointerException e ) {
 			System.out.println("shut down succesfull... :)");

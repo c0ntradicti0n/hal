@@ -68,6 +68,13 @@
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.jmonkeyengine/jme3-core -->
 		<!-- JMonkey Engine dependences -->
+		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+
 		<dependency>
 			<groupId>${jme3_g}</groupId>
 			<artifactId>jme3-core</artifactId>
