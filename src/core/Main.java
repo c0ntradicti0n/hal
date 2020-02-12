@@ -6,6 +6,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,9 +72,10 @@ import util.CsvReader;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.ViewPort;
+import util.UnzipUtil;
 
 public class Main extends SimpleApplication {
-	private static Logger jlog = Logger.getLogger("Main");
+	private static Logger logger = Logger.getLogger("Main");
 	static String kind = "tsne";
 	static volatile int MAX;
 	static stellarObjectDAO cosmic_dao;
@@ -107,6 +112,7 @@ public class Main extends SimpleApplication {
 		Option input = new Option("a", "all", true, "universe coordinates csv path");
 		Option max_opt = new Option("m", "max", true, "max number of entities to show");
 		Option density_opt = new Option("d", "density", true, "density of entities to show, human size normalisation of your coordinates");
+		Option web_opt = new Option("w", "web", true, "download coordinates from web -- see source code if you don't feel save");
 
 		options.addOption(input);
 		options.addOption(colors_opt);
@@ -115,6 +121,9 @@ public class Main extends SimpleApplication {
 		options.addOption(headless_opt);
 		options.addOption(max_opt);
 		options.addOption(density_opt);
+		options.addOption(web_opt);
+
+
 
 		CommandLineParser parser = new DefaultParser();
 		HelpFormatter formatter = new HelpFormatter();
@@ -141,8 +150,12 @@ public class Main extends SimpleApplication {
 		settings.put("VSync", true);
 		settings.put("Samples", 1);
 
+
 		Main app = new Main();
 		app.setSettings(settings);
+		app.setDisplayFps(false);       // to hide the FPS
+		app.setDisplayStatView(false);  // to hide the statistics
+
 		try {
 			Capture.captureVideo(app, new File("record.mp4"));
 
@@ -152,17 +165,20 @@ public class Main extends SimpleApplication {
 		}
 		app.setTimer(new IsoTimer(30));
 
+		if (cmd.hasOption("web")) {
+			getFromWeb();
+		}
 
 		String colors_by_path =  "data/kn_clusters_mean_points.csv";
 		if (cmd.hasOption("colors")) {
-			jlog.info("Colors loading: " + cmd.getOptionValue("colors"));
+			logger.info("Colors loading: " + cmd.getOptionValue("colors"));
 			colors_by_path = cmd.getOptionValue("colors");
 		}
 		colors_by = CsvReader.readClusterCenters(colors_by_path);
 
 		String path_by_path = "data/kn_clusters_mean_points.csv";
 		if (cmd.hasOption("path")) {
-			jlog.info("Path loading " + cmd.getOptionValue("path"));
+			logger.info("Path loading " + cmd.getOptionValue("path"));
 			path_by_path =  cmd.getOptionValue("path");
 		}
 		path_by = CsvReader.readClusterCenters(path_by_path);
@@ -186,16 +202,32 @@ public class Main extends SimpleApplication {
 			cosmic_dao = new stellarObjectNeo4jDAO(kind, MAX);
 		}
 
+
+
 		if (cmd.hasOption("h")) {
-
 			settings.setRenderer(AppSettings.LWJGL_OPENGL3);
-
 			app.setSettings(settings);
 			app.setShowSettings(false);
 			app.start();
-
 		} else {
 			app.start(); // start the game
+		}
+	}
+
+	private static void getFromWeb() {
+		try {
+			Files.copy(
+					new URL("http://corpuscow.spcified.work/data.zip").openStream(),
+					Paths.get("."));
+		} catch (IOException e) {
+            logger.info("outdated url of corpuscow, seems to have moved on");
+      		}
+		UnzipUtil unzipper = new UnzipUtil();
+		try {
+			unzipper.unzip("./data.zip", "./data/");
+		} catch (Exception ex) {
+			// some errors occurred
+			ex.printStackTrace();
 		}
 	}
 
@@ -352,26 +384,26 @@ public class Main extends SimpleApplication {
 		public void onAction(String name, boolean keyPressed, float tpf) {
 			if (name.equals("moremax") && !keyPressed) {
 				MAX *= 1.3;
-				jlog.info("maxmimum number of loaded elements is now " + MAX);
+				logger.info("maxmimum number of loaded elements is now " + MAX);
 				cosmic_dao.setLimit(MAX);
 			}
 			if (name.equals("lessmax") && !keyPressed) {
 				MAX /= 1.5;
-				jlog.info("maxmimum number of loaded elements is now " + MAX);
+				logger.info("maxmimum number of loaded elements is now " + MAX);
 				cosmic_dao.setLimit(MAX);
 			}
 			if (name.equals("more") && !keyPressed) {
-				jlog.info("retrieving more data around actual position");
+				logger.info("retrieving more data around actual position");
 				addRealm(cam.getLocation(), 30000.5f);
 
 			}
 			if (name.equals("cam") && !keyPressed) {
-				jlog.info("switching cam");
+				logger.info("switching cam");
 				switch_cam();
 
 			}
 			if (name.equals("exit") && !keyPressed) {
-				jlog.info("exiting");
+				logger.info("exiting");
 				shutdown();
 			}
 		}
@@ -396,30 +428,22 @@ public class Main extends SimpleApplication {
 
 	private void switch_cam() {
 		if (fly_or_move) {
-
 			flyCam.setEnabled(false);
-
 			camNode.setEnabled(true);
-
 			cameraMotionControl.setSpeed(1);
 			cameraMotionControl.play();
-
 			fly_or_move = false;
 		}
 
 		else {
-
 			cameraMotionControl.stop();
 			camNode.setEnabled(false);
 			flyCam.setEnabled(true);
 			flyCam.setMoveSpeed(200);
 			cam.setLocation(new Vector3f(0, 0f, 0f));
 			cam.lookAtDirection(new Vector3f(0f, 0f, 0f), new Vector3f(1f, 1f, 1f));
-
 			fly_or_move = true;
-
 		}
-
 	}
 
 	private void createCameraMotion() {
@@ -431,42 +455,25 @@ public class Main extends SimpleApplication {
 		path.setCycle(true);
 		for (ClusterCenter cl : colors_by) {
 			Vector3f sP = (new StellarPoint(cl.getPointKind(kind)).getVector());
-			System.out.println(sP);
-
 			path.addWayPoint(sP);
 		}
-
 		path.setCurveTension(0.5f);
-		// path.enableDebugShape(assetManager, rootNode);
-
 		cameraMotionControl = new MotionEvent(camNode, path);
 		cameraMotionControl.setSpeed(1);
-
 		cameraMotionControl.setLoopMode(LoopMode.DontLoop);
-		System.out.print ( path_by.size());
-		System.out.print ( velocity);
-
 		cameraMotionControl.setInitialDuration(velocity * path_by.size());
-		// cameraMotionControl.setLookAt(rootNode.getWorldTranslation(),
-		// Vector3f.UNIT_Y);
 		cameraMotionControl.setDirectionType(MotionEvent.Direction.Path);
-
 		rootNode.attachChild(camNode);
-
 		guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
 		final BitmapText wayPointsText = new BitmapText(guiFont, false);
 		wayPointsText.setSize(guiFont.getCharSet().getRenderedSize());
-
 		guiNode.attachChild(wayPointsText);
 
-
 		path.addListener(new MotionPathListener() {
-
 			public void onWayPointReach(MotionEvent control, int wayPointIndex) {
-				if (wayPointIndex >= path_by.size()/2) {
+				if (wayPointIndex >= path_by.size()-1) {
 					System.out.println("stopping " +  wayPointIndex + "/" +( path_by.size()));
 					shutdown();
-
 				}
 				System.out.println("travelling " +  wayPointIndex + "/" +( path_by.size()-1));
 				if (path.getNbWayPoints() == wayPointIndex + 1) {
